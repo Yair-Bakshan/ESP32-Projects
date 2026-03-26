@@ -58,4 +58,4 @@ Classic Simon Says game with LEDs and buttons for interactive play.
 ### How to Run
 1. Clone the repository:  
    ```bash
-   git clone [https://github.com/Yair-Bakshan/ESP32-Projects.git](https://github.com/Yair-Bakshan/ESP32-Projects.git)
+   git clone https://github.com/Yair-Bakshan/ESP32-Projects.git
