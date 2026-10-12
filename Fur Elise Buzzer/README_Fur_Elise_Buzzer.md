@@ -1,72 +1,54 @@
-# 🎵 Für Elise — Buzzer Edition
+# Für Elise Buzzer
 
-> Beethoven's most iconic melody, squeezed into an Arduino and blasted through a passive buzzer. All 1,000+ notes of it.
-
----
-
-## Overview
-
-This sketch plays a near-complete arrangement of **Für Elise (Op. 173a)** by Ludwig van Beethoven using `tone()` on a passive piezo buzzer. The full melody and its note durations are stored as two large integer arrays, and the sketch iterates through them once on startup.
-
-No loop. One performance. Pure drama.
-
----
+Plays Beethoven's Für Elise on a passive buzzer with the ESP32. The melody and its note durations are stored in two arrays, and the sketch plays them once at startup.
 
 ## Hardware
 
 | Component | Pin |
-|-----------|-----|
-| Passive Piezo Buzzer | `5` |
+|---|---|
+| Passive buzzer (+) | GPIO 5 |
+| Passive buzzer (−) | GND |
 
-> **Passive** buzzer required — an active buzzer plays only a fixed tone and won't work here. The built-in LED on pin 5 may also flicker in sync with the melody as a bonus visual.
+You need a **passive** buzzer. An active buzzer has a built-in oscillator and can only play one fixed tone.
 
----
+On some boards GPIO 5 is also the built-in LED, so the LED may blink with the music.
+
+## Wiring
+
+```
+GPIO 5 ──── [Buzzer +]
+GND    ──── [Buzzer −]
+```
+
+A 100 Ω resistor in series is optional but protects the pin.
 
 ## How It Works
+
+Each note is played with `tone()` for its duration. The sketch then waits 1.3 times that duration, which leaves a short gap between notes.
 
 ```cpp
 tone(PIN_5, melody[i], durations[i]);
 delay(durations[i] * 1.3);
 ```
 
-Each note is played with `tone()` for its specified duration, followed by a `delay` of 1.3× that duration to provide a natural gap between notes (the "articulation" gap). This ratio keeps the melody feeling musical rather than mechanical.
-
----
-
-## Stats
-
 | Property | Value |
-|----------|-------|
-| Note count | ~1,000+ |
-| Frequency range | ~55 Hz → 2637 Hz |
-| Playback | Once, on `setup()` |
-| Loop function | Empty — nothing repeats |
+|---|---|
+| Notes | 2,102 |
+| Frequency range | 55 Hz to 2637 Hz |
+| Length | About 10 minutes |
+| Playback | Once, in `setup()` |
 
----
-
-## Pin Diagram
-
-```
-Pin 5 ──── [Buzzer +]
-GND   ──── [Buzzer −]
-```
-
-No resistor is strictly required for a piezo buzzer, but a 100Ω resistor in series is good practice to protect the output pin.
-
----
+The `loop()` function is empty, so the melody does not repeat. Press the reset button to hear it again.
 
 ## Usage
 
-1. Connect a passive piezo buzzer between pin `5` and `GND`.
-2. Upload the sketch.
-3. The melody starts playing immediately after upload.
-4. Sit back and enjoy Beethoven.
+1. Connect the buzzer between GPIO 5 and GND.
+2. Upload `Fur_Elise_Buzzer.ino`.
+3. The melody starts right after the upload.
 
----
+## Ideas
 
-## Customization Ideas
-
-- **Repeat** — move the playback loop into `loop()` for continuous performance
-- **Tempo control** — multiply `durations[i]` by a global `tempo` float to speed up or slow down
-- **Trigger** — add a button check before playback so it only plays on demand
-- **Visual sync** — drive LEDs or a small OLED display in time with the note changes
+- **Repeat:** move the playback loop into `loop()`.
+- **Tempo:** multiply `durations[i]` by a global tempo value.
+- **Trigger:** wait for a button press before playing.
+- **Visuals:** drive LEDs in time with the notes.
