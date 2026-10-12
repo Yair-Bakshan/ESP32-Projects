@@ -1,108 +1,69 @@
-# 🔴🟡🟢 Simon Says
+# Simon Says
 
-> The classic memory game — light up a sequence, repeat it back, don't mess up.
-
----
-
-## Overview
-
-A full implementation of **Simon Says** on Arduino. The game shows an ever-growing sequence of lit LEDs paired with distinct tones, and you must repeat it back in order. Each successful round speeds the sequence up. Miss a step or run out of time — all LEDs flash and you start over.
-
----
+The classic memory game on the ESP32. The board lights up a growing sequence of LEDs with a tone for each one, and you repeat it with the buttons.
 
 ## Hardware
 
 | Component | Pins |
-|-----------|------|
-| LEDs (×3) | `5`, `18`, `19` |
-| Buttons (×3) | `21`, `22`, `23` (INPUT_PULLUP) |
-| Passive Buzzer | `4` |
+|---|---|
+| LEDs (3) | GPIO 5, 18, 19 |
+| Buttons (3) | GPIO 21, 22, 23 (`INPUT_PULLUP`, other leg to GND) |
+| Passive buzzer | GPIO 4 |
 
-Each button corresponds to the LED at the same index. Button on pin `21` → LED on pin `5`, and so on.
+Each button controls the LED with the same index: the button on GPIO 21 goes with the LED on GPIO 5, and so on.
 
----
+| Index | LED | Button | Tone |
+|---|---|---|---|
+| 0 | GPIO 5 | GPIO 21 | 329 Hz (E4) |
+| 1 | GPIO 18 | GPIO 22 | 261 Hz (C4) |
+| 2 | GPIO 19 | GPIO 23 | 392 Hz (G4) |
 
-## Tones
-
-Each button/LED pair has its own pitch:
-
-| Index | LED Pin | Button Pin | Frequency |
-|-------|---------|------------|-----------|
-| 0     | 5       | 21         | 329 Hz (E4) |
-| 1     | 18      | 22         | 261 Hz (C4) |
-| 2     | 19      | 23         | 392 Hz (G4) |
-
----
-
-## Game Loop
+## Wiring
 
 ```
-SHOW_SEQUENCE
-  └─ Adds one random step to the sequence
-  └─ Plays each step with light + tone
-  └─ → PLAYER_INPUT
+GPIO 5  ──── [LED 0] ──── [220 Ω] ──── GND
+GPIO 18 ──── [LED 1] ──── [220 Ω] ──── GND
+GPIO 19 ──── [LED 2] ──── [220 Ω] ──── GND
 
-PLAYER_INPUT
-  └─ Waits for button presses
-  └─ Correct press → advance; finish round → speed up → SHOW_SEQUENCE
-  └─ Wrong press or timeout (7.5s) → GAME_OVER
+GPIO 21 ──── [Button 0] ──── GND
+GPIO 22 ──── [Button 1] ──── GND
+GPIO 23 ──── [Button 2] ──── GND
 
-GAME_OVER
-  └─ All LEDs flash
-  └─ Sequence resets, speed resets
-  └─ → SHOW_SEQUENCE (new game)
+GPIO 4  ──── [Buzzer +] ──── GND
 ```
 
----
+## How To Play
 
-## Difficulty Progression
+1. Watch the sequence of lights and tones.
+2. Repeat it with the buttons, in the same order.
+3. After each correct round, one more step is added and the sequence plays faster.
+4. A wrong button, or 7.5 seconds without input, ends the game. All LEDs flash and a new game starts.
 
-The display delay starts at **400 ms** and decreases by **20 ms** each successful round:
+## How It Works
 
-```cpp
-displayDelay -= 20;  // Gets faster every round
-```
-
-By round 20 the sequences are flying at 0 ms delay — good luck.
-
----
-
-## Input Details
-
-- **Debounce:** 50 ms minimum between accepted presses
-- **Timeout:** 7.5 seconds of inactivity during input triggers Game Over
-- **Feedback:** Each button press lights the corresponding LED and plays its tone
-
----
-
-## Pin Diagram
+The sketch is a state machine with three states.
 
 ```
-Pin 5  ──── [LED 0] ──── [220Ω] ──── GND
-Pin 18 ──── [LED 1] ──── [220Ω] ──── GND
-Pin 19 ──── [LED 2] ──── [220Ω] ──── GND
-
-Pin 21 ──── [Button 0] ──── GND
-Pin 22 ──── [Button 1] ──── GND
-Pin 23 ──── [Button 2] ──── GND
-
-Pin 4  ──── [Buzzer +] ──── GND
+SHOW_SEQUENCE   add one random step, then play the whole sequence
+PLAYER_INPUT    wait for button presses
+                correct press  -> next step; sequence complete -> SHOW_SEQUENCE
+                wrong press or timeout -> GAME_OVER
+GAME_OVER       flash all LEDs, reset the sequence and the speed
+                then -> SHOW_SEQUENCE
 ```
 
----
+- **Difficulty:** the delay between steps starts at 400 ms and drops by 20 ms after each completed round.
+- **Debounce:** presses closer than 50 ms apart are ignored.
+- **Feedback:** every press lights its LED and plays its tone.
 
 ## Usage
 
-1. Wire up the LEDs, buttons, and buzzer.
-2. Upload the sketch.
-3. Watch the first sequence — then repeat it!
-4. Keep going as long as you can.
+1. Wire the LEDs, buttons and buzzer as shown above.
+2. Upload `Simon_Says.ino`.
+3. Watch the first step and repeat it.
 
----
+## Ideas
 
-## Customization Ideas
-
-- **4th button/LED** — extend the arrays to `4` elements for the classic 4-color Simon experience
-- **High score** — track the longest sequence reached and display it on an OLED after Game Over
-- **Serial output** — print the sequence to Serial for debugging or logging
-- **Difficulty modes** — choose starting speed with a potentiometer before the game begins
+- **Fourth button and LED:** extend the arrays to four elements for the classic four-color game.
+- **High score:** keep the longest sequence and show it on an OLED display.
+- **Difficulty modes:** choose the starting speed with a potentiometer.
